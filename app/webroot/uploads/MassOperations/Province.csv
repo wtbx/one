@@ -1,0 +1,2 @@
+Province.id,Province.name,Province.continent_id,Province.continent_code,Province.continent_name,Province.country_id,Province.country_code,Province.country_name,Province.description,Province.active,Province.wtb_status,Province.status,Province.top_province,Province.is_update,Province.created_by,Province.modified,Province.created
+NULL,Hong Kong,2,AS,Asia,100,HK,Hong Kong,Hong Kong,TRUE,1,1,FALSE,Y,169,0000-00-00 00:00:00,0000-00-00 00:00:00

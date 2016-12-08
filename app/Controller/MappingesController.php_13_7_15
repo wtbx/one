@@ -1,0 +1,727 @@
+<?php
+
+/**
+ * Mapping controller.
+ *
+ * This file will render views from views/agents/
+ *
+ * PHP 5
+ *
+ * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * @link          http://cakephp.org CakePHP(tm) Project
+ * @package       app.Controller
+ * @since         CakePHP(tm) v 0.2.9
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ */
+App::uses('CakeEmail', 'Network/Email');
+/**
+ * Email sender
+ */
+App::uses('AppController', 'Controller');
+
+/**
+ * Agent controller
+ *
+ *
+ * @package       app.Controller
+ * @link http://book.cakephp.org/2.0/en/controllers/pages-controller.html
+ */
+class MappingesController extends AppController {
+
+    public $uses = array( 'User','TravelActionItemType', 'TravelRemark', 'TravelActionItem',
+        'TravelMappingType', 'TravelSupplier', 'TravelCountrySupplier', 'TravelCountrySupplier', 'TravelCitySupplier', 'TravelHotelRoomSupplier','Mappinge','TravelCountry','TravelHotelLookup','TravelCity'
+    );
+
+    public function index() {
+
+        $dummy_status = $this->Auth->user('dummy_status');
+        $role_id = $this->Session->read("role_id");
+        $search_condition = array();
+ 
+        $hotel_wtb_code = '';
+        $supplier_code = '';
+        $country_wtb_code = '';
+        $city_wtb_code = '';
+        $hotel_wtb_code = '';
+        $status = '';
+        $exclude = '';
+        $TravelCities = array();
+        $TravelHotelLookups = array();
+
+        if ($this->request->is('post') || $this->request->is('put')) {
+            if (!empty($this->data['Mappinge']['hotel_wtb_code'])) {
+                $hotel_wtb_code = $this->data['Mappinge']['hotel_wtb_code'];
+                array_push($search_condition, array('Mappinge.hotel_wtb_code' . ' LIKE' => "%" . mysql_escape_string(trim(strip_tags($hotel_wtb_code))) . "%"));
+            }
+
+            if (!empty($this->data['Mappinge']['supplier_code'])) {
+                $supplier_code = $this->data['Mappinge']['supplier_code'];
+                array_push($search_condition, array('Mappinge.supplier_code LIKE' =>  "%" . mysql_escape_string(trim(strip_tags($supplier_code))) . "%"));
+            }
+            if (!empty($this->data['Mappinge']['country_wtb_code'])) {
+                $country_wtb_code = $this->data['Mappinge']['country_wtb_code'];
+                array_push($search_condition, array('Mappinge.country_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($country_wtb_code))) . "%"));
+                $TravelCities = $this->TravelCity->find('list', array('fields' => 'city_code, city_name', 'conditions' => array('country_code LIKE ' => '%'.trim($this->data['Mappinge']['country_wtb_code']).'%','city_status' => '0'), 'order' => 'city_name ASC'));
+            }
+            if (!empty($this->data['Mappinge']['city_wtb_code'])) {
+                $city_wtb_code = $this->data['Mappinge']['city_wtb_code'];
+                array_push($search_condition, array('Mappinge.city_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($city_wtb_code))) . "%"));
+                $TravelHotelLookups = $this->TravelHotelLookup->find('list', array('fields' => 'hotel_code, hotel_name', 'conditions' => array('city_code LIKE' => '%'.trim($this->data['Mappinge']['city_wtb_code']).'%','active' => '1'), 'order' => 'hotel_name ASC'));
+                
+            }
+            if (!empty($this->data['Mappinge']['hotel_wtb_code'])) {
+                $hotel_wtb_code = $this->data['Mappinge']['hotel_wtb_code'];
+                array_push($search_condition, array('Mappinge.hotel_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($hotel_wtb_code))) . "%"));
+                
+                
+            }
+          
+            if (!empty($this->data['Mappinge']['status'])) {
+                $status= $this->data['Mappinge']['status'];
+                array_push($search_condition, array('Mappinge.status' => $status));
+            }
+            if (!empty($this->data['Mappinge']['exclude'])) {
+                $exclude = $this->data['Mappinge']['exclude'];
+                array_push($search_condition, array('Mappinge.exclude' => $exclude));
+            }
+           
+            
+
+        } elseif ($this->request->is('get')) {
+
+            if (!empty($this->request->params['named']['hotel_wtb_code'])) {
+                $hotel_wtb_code = $this->request->params['named']['hotel_wtb_code'];
+                array_push($search_condition, array('Mappinge.hotel_wtb_code' . ' LIKE' => "%" . mysql_escape_string(trim(strip_tags($hotel_wtb_code))) . "%"));
+            }
+
+            if (!empty($this->request->params['named']['supplier_code'])) {
+                $supplier_code = $this->request->params['named']['supplier_code'];
+                array_push($search_condition, array('Mappinge.supplier_code LIKE' =>  "%" . mysql_escape_string(trim(strip_tags($supplier_code))) . "%"));
+            }
+            if (!empty($this->request->params['named']['country_wtb_code'])) {
+                $country_wtb_code = $this->request->params['named']['country_wtb_code'];
+                array_push($search_condition, array('Mappinge.country_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($country_wtb_code))) . "%"));
+                $TravelCities = $this->TravelCity->find('list', array('fields' => 'city_code, city_name', 'conditions' => array('country_code LIKE ' => '%'.trim($this->request->params['named']['country_wtb_code']).'%','city_status' => '0'), 'order' => 'city_name ASC'));
+            }
+            if (!empty($this->request->params['named']['city_wtb_code'])) {
+                $city_wtb_code = $this->request->params['named']['city_wtb_code'];
+                array_push($search_condition, array('Mappinge.city_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($city_wtb_code))) . "%"));
+                $TravelHotelLookups = $this->TravelHotelLookup->find('list', array('fields' => 'hotel_code, hotel_name', 'conditions' => array('city_code LIKE' => '%'.trim($this->request->params['named']['city_wtb_code']).'%','active' => '1'), 'order' => 'hotel_name ASC'));
+              }
+            if (!empty($this->request->params['named']['hotel_wtb_code'])) {
+                $hotel_wtb_code = $this->request->params['named']['hotel_wtb_code'];
+                array_push($search_condition, array('Mappinge.hotel_wtb_code LIKE' => "%" . mysql_escape_string(trim(strip_tags($hotel_wtb_code))) . "%"));
+                
+            }
+            if (!empty($this->request->params['named']['status'])) {
+                $status = $this->request->params['named']['status'];
+                 array_push($search_condition, array('Mappinge.status' => $status));
+            }
+            if (!empty($this->request->params['named']['exclude'])) {
+                $exclude = $this->request->params['named']['exclude'];
+                array_push($search_condition, array('Mappinge.exclude' => $exclude));
+            }           
+        }
+
+
+        if ($dummy_status)
+            array_push($search_condition, array('Mappinge.dummy_status' => $dummy_status));
+
+        
+        if (count($this->params['pass'])) {
+
+            $aaray = explode(':', $this->params['pass'][0]);
+            $field = $aaray[0];
+            $value = $aaray[1];
+            array_push($search_condition, array('Mappinge.' . $field => $value)); // when builder is approve/pending
+        }
+        /*
+        elseif(count($this->params['named'])){
+            foreach($this->params['named'] as $key=>$val){
+                array_push($search_condition, array('Mappinge.' .$key => $val)); // when builder is approve/pending                 
+            }
+        } 
+         * 
+         */
+ 
+
+        $this->paginate['order'] = array('Mappinge.supplier_code' => 'asc');
+        $this->set('Mappinges', $this->paginate("Mappinge", $search_condition));
+
+        $TravelSuppliers = $this->TravelSupplier->find('list', array('fields' => 'supplier_code, supplier_name', 'conditions' => array('active' => 'TRUE'), 'order' => 'supplier_name ASC'));
+        $this->set(compact('TravelSuppliers'));
+        
+        $TravelCountries = $this->TravelCountry->find('list', array('fields' => 'country_code, country_name', 'conditions' => array('country_status' => 'TRUE'), 'order' => 'country_name ASC'));
+        $this->set(compact('TravelCountries'));
+        
+        
+        $this->set(compact('TravelCities'));
+        
+        
+        $this->set(compact('TravelHotelLookups'));
+        
+        $TravelActionItemTypes = $this->TravelActionItemType->find('list', array('fields' => 'id, value', 'order' => 'value ASC'));
+        $this->set(compact('TravelActionItemTypes'));
+        
+        $hotel_all_count = $this->TravelHotelLookup->find('count');
+        $this->set(compact('hotel_all_count'));
+        
+        $country_all_count = $this->TravelCountry->find('count');
+        $this->set(compact('country_all_count'));
+        
+        $city_all_count = $this->TravelCity->find('count');
+        $this->set(compact('city_all_count'));
+
+
+        if (!isset($this->passedArgs['hotel_wtb_code']) && empty($this->passedArgs['hotel_wtb_code'])) {
+            $this->passedArgs['hotel_wtb_code'] = (isset($this->data['Mappinge']['hotel_wtb_code'])) ? $this->data['Mappinge']['hotel_wtb_code'] : '';
+        }
+        if (!isset($this->passedArgs['supplier_code']) && empty($this->passedArgs['supplier_code'])) {
+            $this->passedArgs['supplier_code'] = (isset($this->data['Mappinge']['supplier_code'])) ? $this->data['Mappinge']['supplier_code'] : '';
+        }
+        if (!isset($this->passedArgs['country_wtb_code']) && empty($this->passedArgs['country_wtb_code'])) {
+            $this->passedArgs['country_wtb_code'] = (isset($this->data['Mappinge']['country_wtb_code'])) ? $this->data['Mappinge']['country_wtb_code'] : '';
+        }
+        if (!isset($this->passedArgs['city_wtb_code']) && empty($this->passedArgs['city_wtb_code'])) {
+            $this->passedArgs['city_wtb_code'] = (isset($this->data['Mappinge']['city_wtb_code'])) ? $this->data['Mappinge']['city_wtb_code'] : '';
+        }
+        if (!isset($this->passedArgs['hotel_wtb_code']) && empty($this->passedArgs['hotel_wtb_code'])) {
+            $this->passedArgs['hotel_wtb_code'] = (isset($this->data['Mappinge']['hotel_wtb_code'])) ? $this->data['Mappinge']['hotel_wtb_code'] : '';
+        }
+        if (!isset($this->passedArgs['status']) && empty($this->passedArgs['status'])) {
+            $this->passedArgs['status'] = (isset($this->data['Mappinge']['status'])) ? $this->data['Mappinge']['status'] : '';
+        }
+        if (!isset($this->passedArgs['exclude']) && empty($this->passedArgs['exclude'])) {
+            $this->passedArgs['exclude'] = (isset($this->data['Mappinge']['exclude'])) ? $this->data['Mappinge']['exclude'] : '';
+        }
+     
+      
+
+        if (!isset($this->data) && empty($this->data)) {
+            $this->data['Mappinge']['hotel_wtb_code'] = $this->passedArgs['hotel_wtb_code'];
+            $this->data['Mappinge']['supplier_code'] = $this->passedArgs['supplier_code'];
+            $this->data['Mappinge']['country_wtb_code'] = $this->passedArgs['country_wtb_code'];
+            $this->data['Mappinge']['city_wtb_code'] = $this->passedArgs['city_wtb_code'];
+            $this->data['Mappinge']['hotel_wtb_code'] = $this->passedArgs['hotel_wtb_code'];
+            $this->data['Mappinge']['status'] = $this->passedArgs['status'];
+            $this->data['Mappinge']['exclude'] = $this->passedArgs['exclude'];                    
+        }
+
+        $this->set(compact('hotel_wtb_code'));
+        $this->set(compact('supplier_code'));
+        $this->set(compact('country_wtb_code'));
+        $this->set(compact('city_wtb_code'));
+        $this->set(compact('hotel_wtb_code'));
+        $this->set(compact('status'));
+        $this->set(compact('exclude'));
+  
+    }
+
+    public function add() {
+
+
+        $user_id = $this->Auth->user('id');
+        $role_id = $this->Session->read("role_id");
+        $dummy_status = $this->Auth->user('dummy_status');
+ 
+
+
+
+        if ($this->request->is('post') || $this->request->is('put')) {
+
+
+            $next_action_by = '44';  //overseer 136 44 is sarika
+            $flag = 0;
+            if ($this->data['Mapping']['mapping_type'] == '1') { // supplier country
+                
+                $this->request->data['Mappinge']['supplier_code'] = $this->data['Mapping']['country_supplier_code'];
+                $this->request->data['Mappinge']['mapping_type'] = '1'; // supplier country
+                $this->request->data['Mappinge']['country_wtb_code'] = $this->data['Mapping']['pf_country_code'];
+                $this->request->data['Mappinge']['country_supplier_code'] = $this->data['Mapping']['supplier_country_code'];
+                
+                $this->request->data['TravelCountrySupplier']['country_suppliner_status'] = '1'; // 1 for Submission For Approval [None] of the travel_action_item_types
+                $this->request->data['TravelCountrySupplier']['excluded'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelCountrySupplier']['country_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelCountrySupplier']['supplier_code'] = $this->data['Mapping']['country_supplier_code'];
+                $this->request->data['TravelCountrySupplier']['supplier_country_code'] = $this->data['Mapping']['supplier_country_code'];
+                $this->request->data['TravelCountrySupplier']['pf_country_code'] = $this->data['Mapping']['pf_country_code'];
+                $this->request->data['TravelCountrySupplier']['country_mapping_name'] = strtoupper('[SUPP/COUNTRY] | '.$this->data['Mapping']['country_supplier_code'].' | '.$this->data['Mapping']['pf_country_code']);
+                $this->request->data['TravelCountrySupplier']['created_by'] = $user_id;
+                
+                $tr_remarks['TravelRemark']['remarks_level'] = '2'; // for Mapping Country from travel_action_remark_levels
+                $tr_remarks['TravelRemark']['remarks'] = 'New Supplier Country Record Created';
+
+
+                $tr_action_item['TravelActionItem']['level_id'] = '2'; // for agent travel_action_remark_levels 
+                
+                $tr_action_item['TravelActionItem']['description'] = 'New Supplier Country Record Created - Submission For Approval';
+
+
+                $this->TravelCountrySupplier->save($this->request->data['TravelCountrySupplier']);
+                $country_supplier_id = $this->TravelCountrySupplier->getLastInsertId();
+                if ($country_supplier_id) {
+
+                    $this->request->data['Mappinge']['country_supplier_id'] = $country_supplier_id;
+                    $tr_remarks['TravelRemark']['country_supplier_id'] = $country_supplier_id;
+                    $tr_action_item['TravelActionItem']['country_supplier_id'] = $country_supplier_id;
+                    $flag = 1;
+                }
+            } elseif ($this->data['Mapping']['mapping_type'] == '2') { // supplier city
+                
+                $this->request->data['Mappinge']['supplier_code'] = $this->data['Mapping']['city_supplier_code'];
+                $this->request->data['Mappinge']['mapping_type'] = '2'; // supplier country
+                $this->request->data['Mappinge']['city_wtb_code'] = $this->data['Mapping']['pf_city_code'];
+                $this->request->data['Mappinge']['city_supplier_code'] = $this->data['Mapping']['supplier_city_code'];
+                $this->request->data['Mappinge']['country_wtb_code'] = $this->data['Mapping']['city_country_code'];
+                
+                
+                
+                $this->request->data['TravelCitySupplier']['city_supplier_status'] = '1'; // 1 for Submission For Approval [None] of the travel_action_item_types
+                $this->request->data['TravelCitySupplier']['city_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelCitySupplier']['excluded'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelCitySupplier']['supplier_code'] = $this->data['Mapping']['city_supplier_code'];
+                $this->request->data['TravelCitySupplier']['supplier_city_code'] = $this->data['Mapping']['supplier_city_code'];
+                $this->request->data['TravelCitySupplier']['pf_city_code'] = $this->data['Mapping']['pf_city_code'];
+                $this->request->data['TravelCitySupplier']['city_country_code'] = $this->data['Mapping']['city_country_code'];
+                $this->request->data['TravelCitySupplier']['city_mapping_name'] = strtoupper('[SUPP/CITY] | '.$this->data['Mapping']['city_supplier_code'].' | '.$this->data['Mapping']['city_country_code'].' | '.$this->data['Mapping']['pf_city_code']);
+                $this->request->data['TravelCitySupplier']['created_by'] = $user_id;
+                
+                $supp_country_code = $this->TravelCountrySupplier->find('first',array('fields' => array('supplier_country_code'),'conditions' => array('supplier_code' => $this->data['Mapping']['city_supplier_code'],'pf_country_code' => $this->data['Mapping']['city_country_code'])));
+                $this->request->data['TravelCitySupplier']['supplier_coutry_code'] = $supp_country_code['TravelCountrySupplier']['supplier_country_code'];
+                $this->request->data['Mappinge']['country_supplier_code'] = $supp_country_code['TravelCountrySupplier']['supplier_country_code'];
+                
+                $tr_remarks['TravelRemark']['remarks_level'] = '3'; // for Mapping City from travel_action_remark_levels
+                $tr_remarks['TravelRemark']['remarks'] = 'New Supplier City Record Created';
+
+
+                $tr_action_item['TravelActionItem']['level_id'] = '3'; // for agent travel_action_remark_levels            
+                $tr_action_item['TravelActionItem']['description'] = 'New Supplier City Record Created - Submission For Approval';
+
+
+                $this->TravelCitySupplier->save($this->request->data['TravelCitySupplier']);
+                $city_supplier_id = $this->TravelCitySupplier->getLastInsertId();
+                if ($city_supplier_id) {
+                    $this->request->data['Mappinge']['city_supplier_id'] = $city_supplier_id;
+                    $tr_remarks['TravelRemark']['city_supplier_id'] = $city_supplier_id;
+                    $tr_action_item['TravelActionItem']['city_supplier_id'] = $city_supplier_id;
+                    $flag = 1;
+                }
+            } elseif ($this->data['Mapping']['mapping_type'] == '3') { // supplier hotel room 
+                
+                $this->request->data['Mappinge']['supplier_code'] = $this->data['Mapping']['hotel_supplier_code'];
+                $this->request->data['Mappinge']['mapping_type'] = '3'; // supplier hotel
+                $this->request->data['Mappinge']['hotel_wtb_code'] = $this->data['Mapping']['hotel_code'];
+                $this->request->data['Mappinge']['hotel_supplier_code'] = $this->data['Mapping']['supplier_item_code1'];
+                $this->request->data['Mappinge']['city_wtb_code'] = $this->data['Mapping']['hotel_city_code'];                
+                $this->request->data['Mappinge']['country_wtb_code'] = $this->data['Mapping']['hotel_country_code'];
+                
+                $this->request->data['TravelHotelRoomSupplier']['hotel_supplier_status'] = '1'; // 1 for Submission For Approval [None] of the travel_action_item_types
+                $this->request->data['TravelHotelRoomSupplier']['hotel_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelHotelRoomSupplier']['excluded'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['TravelHotelRoomSupplier']['hotel_code'] = $this->data['Mapping']['hotel_code'];
+                $this->request->data['TravelHotelRoomSupplier']['supplier_code'] = $this->data['Mapping']['hotel_supplier_code'];
+                $this->request->data['TravelHotelRoomSupplier']['hotel_mapping_name'] = strtoupper('[SUPP/HOTEL] | '.$this->data['Mapping']['hotel_supplier_code'].' | '.$this->data['Mapping']['hotel_country_code'].' | '.$this->data['Mapping']['hotel_city_code'].' | '.$this->data['Mapping']['hotel_code']);
+                $this->request->data['TravelHotelRoomSupplier']['hotel_country_code'] = $this->data['Mapping']['hotel_country_code'];
+                $this->request->data['TravelHotelRoomSupplier']['supplier_item_code1'] = $this->data['Mapping']['supplier_item_code1'];
+                $this->request->data['TravelHotelRoomSupplier']['hotel_country_code'] = $this->data['Mapping']['hotel_country_code'];
+                $this->request->data['TravelHotelRoomSupplier']['hotel_city_code'] = $this->data['Mapping']['hotel_city_code'];
+                $this->request->data['TravelHotelRoomSupplier']['created_by'] = $user_id;
+                
+                $supp_country_code = $this->TravelCountrySupplier->find('first',array('fields' => array('supplier_country_code'),'conditions' => array('supplier_code' => $this->data['Mapping']['hotel_supplier_code'],'pf_country_code' => $this->data['Mapping']['hotel_country_code'])));
+                $this->request->data['TravelHotelRoomSupplier']['supplier_item_code4'] = $supp_country_code['TravelCountrySupplier']['supplier_country_code'];
+                $this->request->data['Mappinge']['country_supplier_code'] = $supp_country_code['TravelCountrySupplier']['supplier_country_code'];
+                
+                $supp_city_code = $this->TravelCitySupplier->find('first',array('fields' => array('supplier_city_code'),'conditions' => array('supplier_code' => $this->data['Mapping']['hotel_supplier_code'],'pf_city_code' => $this->data['Mapping']['hotel_city_code'],'city_country_code' => $this->data['Mapping']['hotel_country_code'])));
+                $this->request->data['TravelHotelRoomSupplier']['supplier_item_code3'] = $supp_city_code['TravelCitySupplier']['supplier_city_code'];
+                $this->request->data['Mappinge']['city_supplier_code'] = $supp_city_code['TravelCitySupplier']['supplier_city_code'];
+               
+                $tr_remarks['TravelRemark']['remarks_level'] = '4'; // for Mapping City from travel_action_remark_levels
+                $tr_remarks['TravelRemark']['remarks'] = 'New Supplier Hotel Record Created';
+
+                $tr_action_item['TravelActionItem']['level_id'] = '4'; // for agent travel_action_remark_levels                 
+                $tr_action_item['TravelActionItem']['description'] = 'New Supplier Hotel Record Created - Submission For Approval';
+
+                $this->TravelHotelRoomSupplier->save($this->request->data['TravelHotelRoomSupplier']);
+                $hotel_supplier_id = $this->TravelHotelRoomSupplier->getLastInsertId();
+                if ($hotel_supplier_id) {            
+                    $this->request->data['Mappinge']['hotel_supplier_id'] = $hotel_supplier_id;     
+                    $tr_remarks['TravelRemark']['hotel_supplier_id'] = $hotel_supplier_id;
+                    $tr_action_item['TravelActionItem']['hotel_supplier_id'] = $hotel_supplier_id;
+                    $flag = 1;
+                }
+            }
+
+
+            /*
+             * ***************** Remarks *******************
+             */
+            if ($flag) {
+                
+
+                $this->request->data['Mappinge']['created_by'] = $user_id;
+                $this->request->data['Mappinge']['status'] =  '1'; // 1 for Submission For Approval [None] of the travel_action_item_types
+                $this->request->data['Mappinge']['exclude'] = '2'; // 2 for No of lookup_value_statuses
+                $this->request->data['Mappinge']['dummy_status'] = $dummy_status;
+                $this->Mappinge->save($this->request->data['Mappinge']);
+
+                $tr_remarks['TravelRemark']['created_by'] = $user_id;
+                $tr_remarks['TravelRemark']['remarks_time'] = date('g:i A');
+
+                $tr_remarks['TravelRemark']['dummy_status'] = $dummy_status;
+                $this->TravelRemark->save($tr_remarks);
+
+
+
+
+                /*
+                 * ********************** Action *********************
+                 */
+
+                $tr_action_item['TravelActionItem']['type_id'] = '1'; // 1 for Submission For Approval [None] of the travel_action_item_types
+                $tr_action_item['TravelActionItem']['action_item_active'] = 'Yes';
+                $tr_action_item['TravelActionItem']['action_item_source'] = $role_id;
+                $tr_action_item['TravelActionItem']['created_by_id'] = $user_id;
+                $tr_action_item['TravelActionItem']['created_by'] = $user_id;
+                $tr_action_item['TravelActionItem']['dummy_status'] = $dummy_status;
+                $tr_action_item['TravelActionItem']['next_action_by'] = $next_action_by;
+                $tr_action_item['TravelActionItem']['parent_action_item_id'] = '';
+                $this->TravelActionItem->save($tr_action_item);
+                $ActionId = $this->TravelActionItem->getLastInsertId();
+                $ActionUpdateArr['TravelActionItem']['parent_action_item_id'] = "'" . $ActionId . "'";
+                $this->TravelActionItem->updateAll($ActionUpdateArr['TravelActionItem'], array('TravelActionItem.id' => $ActionId));
+
+                $this->Session->setFlash('Your changes have been submitted. Waiting for approval at the moment...', 'success');
+                $this->redirect(array('controller' => 'mappinges', 'action' => 'index'));
+            }
+            else
+                $this->Session->setFlash('Unable to add Action item.', 'failure');
+        }
+
+
+
+        $TravelMappingTypes = $this->TravelMappingType->find('list', array('fields' => 'id, value', 'order' => 'value ASC'));
+        $this->set(compact('TravelMappingTypes'));
+
+        $TravelSuppliers = $this->TravelSupplier->find('all', array('fields' => 'supplier_code, supplier_name', 'conditions' => array('active' => 'TRUE'), 'order' => 'supplier_name ASC'));
+        $TravelSuppliers = Set::combine($TravelSuppliers, '{n}.TravelSupplier.supplier_code', array('%s - %s', '{n}.TravelSupplier.supplier_code', '{n}.TravelSupplier.supplier_name'));
+        $this->set(compact('TravelSuppliers'));
+        
+        
+    }
+
+    function edit_supplier_country($id = null) {
+
+        $this->layout = '';
+        $user_id = $this->Auth->user('id');
+        $role_id = $this->Session->read("role_id");
+        $dummy_status = $this->Auth->user('dummy_status');
+        $next_action_by = '44';  //overseer 136 44 is sarika
+        $actio_itme_id = '';
+        $flag = 0;
+        $arr = explode('_', $id);
+        $id = $arr[0];
+        if (count($arr) > 1) {
+            $actio_itme_id = $arr[1];
+            $flag = 1;
+        }
+
+        if (!$id) {
+            throw new NotFoundException(__('Invalid Country Supplier'));
+        }
+
+        $TravelCountrySuppliers = $this->TravelCountrySupplier->findById($id);
+
+
+        if (!$TravelCountrySuppliers) {
+            throw new NotFoundException(__('Invalid Country Supplier'));
+        }
+
+        if ($this->request->data) {
+
+
+            $oversing_user = array();
+
+            $this->request->data['TravelCountrySupplier']['country_suppliner_status'] = '4'; // 4 for Change Submitted of the travel_action_item_types
+            $this->request->data['TravelCountrySupplier']['country_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+
+            /*             * ************************* Action ********************** */
+            $travel_action_item['TravelActionItem']['country_supplier_id'] = $id;
+            $travel_action_item['TravelActionItem']['level_id'] = '2';  // for agent travel_action_remark_levels 
+            $travel_action_item['TravelActionItem']['type_id'] = '4'; // for Change Submitted of travel_action_item_types
+            $travel_action_item['TravelActionItem']['next_action_by'] = $next_action_by;
+            $travel_action_item['TravelActionItem']['action_item_active'] = 'Yes';
+            $travel_action_item['TravelActionItem']['description'] = 'Supplier Country Record Updated - Re-Submission For Approval';
+            $travel_action_item['TravelActionItem']['action_item_source'] = $role_id;
+            $travel_action_item['TravelActionItem']['created_by_id'] = $user_id;
+            $travel_action_item['TravelActionItem']['created_by'] = $user_id;
+            $travel_action_item['TravelActionItem']['dummy_status'] = $dummy_status;
+            $travel_action_item['TravelActionItem']['parent_action_item_id'] = $actio_itme_id;
+
+
+            /*             * ********************* Remarks ******************************** */
+            $travel_remarks['TravelRemark']['country_supplier_id'] = $id;
+            $travel_remarks['TravelRemark']['remarks'] = 'Edit Supplier Country Record';
+            $travel_remarks['TravelRemark']['created_by'] = $user_id;
+            $travel_remarks['TravelRemark']['remarks_time'] = date('g:i A');
+            $travel_remarks['TravelRemark']['remarks_level'] = '2';  // for mapping country travel_action_remark_levels 
+            $travel_remarks['TravelRemark']['dummy_status'] = $dummy_status;
+            $this->TravelRemark->save($travel_remarks);
+
+      
+            $this->TravelCountrySupplier->id = $id;
+            if ($this->TravelCountrySupplier->save($this->request->data['TravelCountrySupplier'])) {
+                $this->TravelActionItem->save($travel_action_item);
+                $ActionId = $this->TravelActionItem->getLastInsertId();
+                if ($actio_itme_id) {
+                    $this->TravelActionItem->updateAll(array('TravelActionItem.action_item_active' => "'No'"), array('TravelActionItem.id' => $actio_itme_id));
+                }
+                $this->Session->setFlash('Your changes have been submitted. Waiting for approval at the moment...', 'success');
+            }
+            
+            else
+                $this->Session->setFlash('Unable to add Action item.', 'failure');
+            
+            echo '<script>
+                var objP=parent.document.getElementsByClassName("mfp-bg");
+                var objC=parent.document.getElementsByClassName("mfp-wrap");
+                objP[0].style.display="none";
+                objC[0].style.display="none";
+                parent.location.reload(true);</script>';
+          
+        }
+
+
+        $TravelSuppliers = $this->TravelSupplier->find('all', array('fields' => 'supplier_code, supplier_name', 'conditions' => array('active' => 'TRUE'), 'order' => 'supplier_name ASC'));
+        $TravelSuppliers = Set::combine($TravelSuppliers, '{n}.TravelSupplier.supplier_code', array('%s - %s', '{n}.TravelSupplier.supplier_code', '{n}.TravelSupplier.supplier_name'));
+        $this->set(compact('TravelSuppliers'));
+        
+        $TravelCountries = $this->TravelCountry->find('all', array('fields' => 'country_code, country_name','order' => 'country_name ASC'));
+        $TravelCountries = Set::combine($TravelCountries, '{n}.TravelCountry.country_code', array('%s - %s', '{n}.TravelCountry.country_code', '{n}.TravelCountry.country_name'));
+        $this->set(compact('TravelCountries'));
+
+
+        $this->request->data = $TravelCountrySuppliers;
+    }
+    function edit_supplier_city($id = null) {
+
+        $this->layout = '';
+        $user_id = $this->Auth->user('id');
+        $role_id = $this->Session->read("role_id");
+        $dummy_status = $this->Auth->user('dummy_status');
+        $next_action_by = '44';  //overseer 136 44 is sarika
+        $actio_itme_id = '';
+        $flag = 0;
+        $arr = explode('_', $id);
+        $id = $arr[0];
+        if (count($arr) > 1) {
+            $actio_itme_id = $arr[1];
+            $flag = 1;
+        }
+
+        if (!$id) {
+            throw new NotFoundException(__('Invalid City Supplier'));
+        }
+
+        $TravelCitySuppliers = $this->TravelCitySupplier->findById($id);
+
+
+        if (!$TravelCitySuppliers) {
+            throw new NotFoundException(__('Invalid City Supplier'));
+        }
+
+        if ($this->request->data) {
+
+
+            $oversing_user = array();
+
+            $this->request->data['TravelCitySupplier']['city_supplier_status'] = '4'; // 4 for Change Submitted of the travel_action_item_types
+            $this->request->data['TravelCitySupplier']['city_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+
+            /*             * ************************* Action ********************** */
+            $travel_action_item['TravelActionItem']['city_supplier_id'] = $id;
+            $travel_action_item['TravelActionItem']['level_id'] = '3';  // for mapping city travel_action_remark_levels 
+            $travel_action_item['TravelActionItem']['type_id'] = '4'; // for Change Submitted of travel_action_item_types
+            $travel_action_item['TravelActionItem']['next_action_by'] = $next_action_by;
+            $travel_action_item['TravelActionItem']['action_item_active'] = 'Yes';
+            $travel_action_item['TravelActionItem']['description'] = 'Supplier City Record Updated - Re-Submission For Approval';
+            $travel_action_item['TravelActionItem']['action_item_source'] = $role_id;
+            $travel_action_item['TravelActionItem']['created_by_id'] = $user_id;
+            $travel_action_item['TravelActionItem']['created_by'] = $user_id;
+            $travel_action_item['TravelActionItem']['dummy_status'] = $dummy_status;
+            $travel_action_item['TravelActionItem']['parent_action_item_id'] = $actio_itme_id;
+
+
+            /*             * ********************* Remarks ******************************** */
+            $travel_remarks['TravelRemark']['city_supplier_id'] = $id;
+            $travel_remarks['TravelRemark']['remarks'] = 'Edit Supplier City Record';
+            $travel_remarks['TravelRemark']['created_by'] = $user_id;
+            $travel_remarks['TravelRemark']['remarks_time'] = date('g:i A');
+            $travel_remarks['TravelRemark']['remarks_level'] = '3';  // for mapping country travel_action_remark_levels 
+            $travel_remarks['TravelRemark']['dummy_status'] = $dummy_status;
+            $this->TravelRemark->save($travel_remarks);
+
+      
+            $this->TravelCitySupplier->id = $id;
+            if ($this->TravelCitySupplier->save($this->request->data['TravelCitySupplier'])) {
+                $this->TravelActionItem->save($travel_action_item);
+                $ActionId = $this->TravelActionItem->getLastInsertId();
+                if ($actio_itme_id) {
+                    $this->TravelActionItem->updateAll(array('TravelActionItem.action_item_active' => "'No'"), array('TravelActionItem.id' => $actio_itme_id));
+                }
+                $this->Session->setFlash('Your changes have been submitted. Waiting for approval at the moment...', 'success');
+            }
+            
+            else
+                $this->Session->setFlash('Unable to add Action item.', 'failure');
+            
+            echo '<script>
+                var objP=parent.document.getElementsByClassName("mfp-bg");
+                var objC=parent.document.getElementsByClassName("mfp-wrap");
+                objP[0].style.display="none";
+                objC[0].style.display="none";
+                parent.location.reload(true);</script>';
+          
+        }
+
+
+        $TravelSuppliers = $this->TravelSupplier->find('all', array('fields' => 'supplier_code, supplier_name', 'conditions' => array('active' => 'TRUE'), 'order' => 'supplier_name ASC'));
+        $TravelSuppliers = Set::combine($TravelSuppliers, '{n}.TravelSupplier.supplier_code', array('%s - %s', '{n}.TravelSupplier.supplier_code', '{n}.TravelSupplier.supplier_name'));
+        $this->set(compact('TravelSuppliers'));
+        
+        $TravelCountries = $this->TravelCountry->find('all', array('fields' => 'country_code, country_name','conditions' => array('country_code' => $TravelCitySuppliers['TravelCitySupplier']['city_country_code']),'order' => 'country_name ASC'));
+        $TravelCountries = Set::combine($TravelCountries, '{n}.TravelCountry.country_code', array('%s - %s', '{n}.TravelCountry.country_code', '{n}.TravelCountry.country_name'));
+        $this->set(compact('TravelCountries'));
+        
+        $TravelCities = $this->TravelCity->find('all', array('fields' => 'city_code, city_name','conditions' => array('city_code' => $TravelCitySuppliers['TravelCitySupplier']['pf_city_code']),'order' => 'city_name ASC'));
+        $TravelCities = Set::combine($TravelCities, '{n}.TravelCity.city_code', array('%s - %s', '{n}.TravelCity.city_code', '{n}.TravelCity.city_name'));
+        $this->set(compact('TravelCities'));
+
+
+        $this->request->data = $TravelCitySuppliers;
+    }
+    function edit_supplier_hotel($id = null) {
+
+        $this->layout = '';
+        $user_id = $this->Auth->user('id');
+        $role_id = $this->Session->read("role_id");
+        $dummy_status = $this->Auth->user('dummy_status');
+        $next_action_by = '44';  //overseer 136 44 is sarika
+        $actio_itme_id = '';
+        $flag = 0;
+        $arr = explode('_', $id);
+        $id = $arr[0];
+        if (count($arr) > 1) {
+            $actio_itme_id = $arr[1];
+            $flag = 1;
+        }
+
+        if (!$id) {
+            throw new NotFoundException(__('Invalid Hotel Supplier'));
+        }
+
+        $TravelHotelRoomSuppliers = $this->TravelHotelRoomSupplier->findById($id);
+
+
+        if (!$TravelHotelRoomSuppliers) {
+            throw new NotFoundException(__('Invalid Hotel Supplier'));
+        }
+
+        if ($this->request->data) {
+
+
+            $oversing_user = array();
+
+            $this->request->data['TravelHotelRoomSupplier']['hotel_supplier_status'] = '4'; // 4 for Change Submitted of the travel_action_item_types
+            $this->request->data['TravelHotelRoomSupplier']['hotel_supplier_approve'] = '2'; // 2 for No of lookup_value_statuses
+
+            /*             * ************************* Action ********************** */
+            $travel_action_item['TravelActionItem']['hotel_supplier_id'] = $id;
+            $travel_action_item['TravelActionItem']['level_id'] = '4';  // for mapping hotel travel_action_remark_levels 
+            $travel_action_item['TravelActionItem']['type_id'] = '4'; // for Change Submitted of travel_action_item_types
+            $travel_action_item['TravelActionItem']['next_action_by'] = $next_action_by;
+            $travel_action_item['TravelActionItem']['action_item_active'] = 'Yes';
+            $travel_action_item['TravelActionItem']['description'] = 'Supplier Hotel Record Updated - Re-Submission For Approval';
+            $travel_action_item['TravelActionItem']['action_item_source'] = $role_id;
+            $travel_action_item['TravelActionItem']['created_by_id'] = $user_id;
+            $travel_action_item['TravelActionItem']['created_by'] = $user_id;
+            $travel_action_item['TravelActionItem']['dummy_status'] = $dummy_status;
+            $travel_action_item['TravelActionItem']['parent_action_item_id'] = $actio_itme_id;
+
+
+            /*             * ********************* Remarks ******************************** */
+            $travel_remarks['TravelRemark']['hotel_supplier_id'] = $id;
+            $travel_remarks['TravelRemark']['remarks'] = 'Edit Supplier Hotel Record';
+            $travel_remarks['TravelRemark']['created_by'] = $user_id;
+            $travel_remarks['TravelRemark']['remarks_time'] = date('g:i A');
+            $travel_remarks['TravelRemark']['remarks_level'] = '4';  // for mapping hotel travel_action_remark_levels 
+            $travel_remarks['TravelRemark']['dummy_status'] = $dummy_status;
+            $this->TravelRemark->save($travel_remarks);
+
+      
+            $this->TravelHotelRoomSupplier->id = $id;
+            if ($this->TravelHotelRoomSupplier->save($this->request->data['TravelHotelRoomSupplier'])) {
+                $this->TravelActionItem->save($travel_action_item);
+                $ActionId = $this->TravelActionItem->getLastInsertId();
+                if ($actio_itme_id) {
+                    $this->TravelActionItem->updateAll(array('TravelActionItem.action_item_active' => "'No'"), array('TravelActionItem.id' => $actio_itme_id));
+                }
+                $this->Session->setFlash('Your changes have been submitted. Waiting for approval at the moment...', 'success');
+            }
+            
+            else
+                $this->Session->setFlash('Unable to add Action item.', 'failure');
+            
+            echo '<script>
+                var objP=parent.document.getElementsByClassName("mfp-bg");
+                var objC=parent.document.getElementsByClassName("mfp-wrap");
+                objP[0].style.display="none";
+                objC[0].style.display="none";
+                parent.location.reload(true);</script>';
+          
+        }
+
+
+        $TravelSuppliers = $this->TravelSupplier->find('all', array('fields' => 'supplier_code, supplier_name', 'conditions' => array('active' => 'TRUE'), 'order' => 'supplier_name ASC'));
+        $TravelSuppliers = Set::combine($TravelSuppliers, '{n}.TravelSupplier.supplier_code', array('%s - %s', '{n}.TravelSupplier.supplier_code', '{n}.TravelSupplier.supplier_name'));
+        $this->set(compact('TravelSuppliers'));
+        
+        $TravelCountries = $this->TravelCountry->find('all', array('fields' => 'country_code, country_name','conditions' => array('country_code' => $TravelHotelRoomSuppliers['TravelHotelRoomSupplier']['hotel_country_code']),'order' => 'country_name ASC'));
+        $TravelCountries = Set::combine($TravelCountries, '{n}.TravelCountry.country_code', array('%s - %s', '{n}.TravelCountry.country_code', '{n}.TravelCountry.country_name'));
+        $this->set(compact('TravelCountries'));
+        
+        $TravelCities = $this->TravelCity->find('all', array('fields' => 'city_code, city_name','conditions' => array('city_code' => $TravelHotelRoomSuppliers['TravelHotelRoomSupplier']['hotel_city_code']),'order' => 'city_name ASC'));
+        $TravelCities = Set::combine($TravelCities, '{n}.TravelCity.city_code', array('%s - %s', '{n}.TravelCity.city_code', '{n}.TravelCity.city_name'));
+        $this->set(compact('TravelCities'));
+        
+        $TravelHotelLookups = $this->TravelHotelLookup->find('list', array('fields' => 'hotel_code, hotel_name','conditions' => array('hotel_code' => $TravelHotelRoomSuppliers['TravelHotelRoomSupplier']['hotel_code']),'order' => 'hotel_name ASC'));        
+        $this->set(compact('TravelHotelLookups'));
+
+
+        $this->request->data = $TravelHotelRoomSuppliers;
+    }
+
+    /*
+    function view($id = null) {
+
+        $id = base64_decode($id);
+        if (!$id) {
+            throw new NotFoundException(__('Invalid Agent'));
+        }
+        $Agents = $this->Agent->findById($id);
+        if (!$Agents) {
+            throw new NotFoundException(__('Invalid Agent'));
+        }
+        $this->request->data = $Agents;
+    }
+     * 
+     */
+
+}
+

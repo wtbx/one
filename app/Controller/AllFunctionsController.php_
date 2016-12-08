@@ -1,0 +1,695 @@
+<?php
+
+/**
+ * Allfunctions controller.
+ *
+ * This file will render views from views/departments/
+ *
+ * PHP 5
+ *
+ * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * @link          http://cakephp.org CakePHP(tm) Project
+ * @package       app.Controller
+ * @since         CakePHP(tm) v 0.2.9
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ */
+App::uses('AppController', 'Controller');
+
+/**
+ * AllFunctions controller contains the list of the commons function through out the site.
+ *
+ *
+ * @package       app.Controller
+ */
+class AllFunctionsController extends AppController {
+
+    var $uses = array('Project','City','Builder','User','Channel','LookupValueAmenitie','Suburb','Area','LookupValueReimbursementType_2','Event','BuilderContact','LookupValueActivityDetail','LookupCompany','Lead');
+
+    /**
+     * Get DeparmentUniversity ID and Department NAME using AJAX POST method
+     *
+     * @param integer $unv_id This is the university id
+     * @param string $model This is the Name of the Model
+     * @return null    This method does not return any data.
+     * @access public 
+     */
+    public function get_project() {
+        $this->layout = 'ajax';
+        $city_id = $this->data['city_id'];
+        $model = $this->data['model'];
+        $conditions = array('Project.city_id' => $city_id);
+        $projects = $this->Project->find('list', array(
+            'fields' => array('Project.id', 'Project.project_name'),
+            'joins' => array(
+                array(
+                    'table' => 'cities',
+                    'alias' => 'City',
+                    'conditions' => array(
+                        'City.id = Project.city_id'
+                    )
+                )
+            ),
+            'conditions' => $conditions,
+            'order' => 'Project.project_name ASC'
+        ));
+               
+        $this->set(compact('projects'));
+        $this->set('model', $model);
+    }
+	
+	public function get_project_by_city($model = null){
+		 $this->layout = 'ajax';
+		 $dummy_status = $this->Auth->user('dummy_status');
+		 $city_id = $this->data[$model]['city_id'];
+		 $projects = $this->Project->find('list', array('conditions' => array('Project.city_id' => $city_id,'Project.dummy_status' => $dummy_status),
+														'fields' => 'Project.id, Project.project_name',
+														'order' => 'Project.project_name ASC'
+													));
+		$this->set(compact('projects'));
+	}
+    
+    public function get_prmember_by_channel_id() {
+        $this->layout = 'ajax';
+    
+	$dummy_status = $this->Auth->user('dummy_status');
+	$channel_id = $this->data['channel_id'];
+    $model = $this->data['model'];
+	
+	$users = $this->User->find('all',array('fields' => array('User.id','User.fname','User.mname','User.lname','User.company_email_id','User.primary_mobile_number'),
+                                                         'conditions' => array('User.exu_channel_id' => $channel_id,'User.exu_role_id' => '7','User.dummy_status' => $dummy_status)));
+
+	//$channels = Set::combine($users, '{n}.User.id',array('%s %s %s','{n}.User.fname','{n}.User.mname','{n}.User.lname'));
+	
+	
+	
+	//pr($users);
+	
+	
+	
+	$this->set(compact('users'));
+                
+	$this->set('model', $model);
+    }
+    public function get_amenity_by_groupId() {
+        $this->layout = 'ajax';
+        $group_id = $this->data['group_id'];
+        $model = $this->data['model'];
+        
+        $groups = $this->LookupValueAmenitie->find('list', array('fields' => array('LookupValueAmenitie.id', 'LookupValueAmenitie.amenity_name'),
+            'conditions' => 'LookupValueAmenitie.group_id =' . $group_id,
+            'order' => 'LookupValueAmenitie.amenity_name ASC'));
+		$this->set(compact('groups'));
+                $this->set('model', $model);
+    }
+    
+ public function get_suburb_by_city($model = null){
+	
+	$this->layout = 'ajax';
+	$dummy_status = $this->Auth->user('dummy_status');
+		if($model)
+	   		 $city_id = $this->data[$model]['city_id'];
+		else
+			 $city_id = $this->data['Lead']['city_id'];
+	
+
+        $suburbs = $this->Suburb->find('list', array(
+            'conditions' => array(
+                'Suburb.city_id' => $city_id,
+				'Suburb.dummy_status' => $dummy_status,
+				'Suburb.suburb_status' => '1'
+            ),
+            'fields' => 'Suburb.id, Suburb.suburb_name',
+            'order' => 'Suburb.suburb_name ASC'
+        ));
+        $this->set(compact('suburbs'));
+    }
+
+ public function get_area_by_city($model = null){
+	
+	$this->layout = 'ajax';
+	$dummy_status = $this->Auth->user('dummy_status');
+	if($model)
+		$city_id = $this->data[$model]['city_id'];
+	else
+		$city_id = $this->data['Lead']['city_id'];	
+	
+	
+    
+        $areas = $this->Area->find('list', array(
+            'conditions' => array(
+                'Area.city_id' => $city_id,
+				'Area.dummy_status' => $dummy_status,
+				'Area.area_status' => '1'
+            ),
+            'fields' => 'Area.id, Area.area_name',
+            'order' => 'Area.area_name ASC'
+        ));
+        $this->set(compact('areas'));
+    }
+    
+ public function get_area_by_suburb($model = null){
+	
+	$this->layout = 'ajax';
+	$dummy_status = $this->Auth->user('dummy_status');
+	$city_id = $this->data[$model]['city_id'];
+	if($model == 'Lead')
+	    $suburb_id = $this->data[$model]['lead_suburb1'];
+	else if($model == 'Project')
+	     $suburb_id = $this->data[$model]['suburb_id'];	
+
+	if($city_id){
+        $areas = $this->Area->find('list', array(
+            'conditions' => array(
+                'Area.city_id' => $city_id,
+				'Area.suburb_id' => $suburb_id,
+				'Area.dummy_status' => $dummy_status,
+				'Area.area_status' => '1'
+		
+            ),
+            'fields' => 'Area.id, Area.area_name',
+            'order' => 'Area.area_name ASC'
+        ));
+	}
+	else{
+	    $areas = $this->Area->find('list', array(
+            'conditions' => array(
+               
+				'Area.suburb_id' => $suburb_id,
+				'Area.dummy_status' => $dummy_status,
+				'Area.area_status' => '1'
+		
+            ),
+            'fields' => 'Area.id, Area.area_name',
+            'order' => 'Area.area_name ASC'
+        ));
+	}
+	
+        $this->set(compact('areas'));
+    }
+    
+    public function get_phone_office_by_cityid(){
+	$this->layout = 'ajax';
+        $city_id = $this->data['Lead']['city_id'];
+		$dummy_status = $this->Auth->user('dummy_status');
+        $Channels = $this->Channel->find('all', array(
+            'conditions' => array(
+                'Channel.city_id' => $city_id,
+		'Channel.channel_role' => 5,     // 5 for phone office of lookup_value_channel_roles
+		'Channel.dummy_status' => $dummy_status
+		
+            ),
+            'fields' => 'Channel.id, Channel.channel_name',
+            'order' => 'Channel.channel_name ASC'
+        ));
+
+	  foreach($Channels as $val){
+	  	$channel_id[] = $val['Channel']['id'];
+	  }
+
+		
+		$phone_officer = $this->User->find('all',array('fields' => array('User.id','User.fname','User.mname','User.lname'),'conditions' => array(
+		'User.phone_role_id' => 14,     // 14 for phone office of roles table
+		'User.phone_channel_id' => $channel_id,
+		'User.dummy_status' => $dummy_status
+			
+		    ),));
+
+		$phone_officer = Set::combine($phone_officer, '{n}.User.id',array('%s %s %s','{n}.User.fname','{n}.User.mname','{n}.User.lname'));
+		
+        $this->set(compact('phone_officer'));
+    }
+    public function get_builder_by_cityid($model = null ){
+	$this->layout = 'ajax';
+	$dummy_status = $this->Auth->user('dummy_status');
+	   if($model == 'Project')
+	   		$city_id = $this->data['Project']['city_id'];
+		else	
+	  		$city_id = $this->data['Lead']['city_id'];
+       
+        $builders = $this->Builder->find('list', array(
+	    
+	    'conditions' => array('OR' =>array(
+                'Builder.builder_primarycity' => $city_id,
+		'Builder.builder_secondarycity' => $city_id,
+		'Builder.builder_tertiarycity' => $city_id,
+		'Builder.city_4' => $city_id,
+		'Builder.city_5' => $city_id,
+		),
+		'Builder.builder_approved' => '1',
+		'Builder.dummy_status' => $dummy_status,
+		
+		
+            ),
+            'fields' => 'Builder.id, Builder.builder_name',
+            'order' => 'Builder.builder_name ASC'
+        ));
+        $this->set(compact('builders'));
+    }
+	
+public function get_pribuilder_by_cityid(){
+	$this->layout = 'ajax';
+	   
+	    $city_id = $this->data['Project']['city_id'];
+       
+        $builders = $this->Builder->find('list', array(
+	    
+	    'conditions' => array('OR' =>array(
+                'Builder.builder_primarycity' => $city_id,
+		'Builder.builder_secondarycity' => $city_id,
+		'Builder.builder_tertiarycity' => $city_id,
+		'Builder.city_4' => $city_id,
+		'Builder.city_5' => $city_id,
+		),
+		'Builder.builder_approved' => '1'
+		
+		
+            ),
+            'fields' => 'Builder.id, Builder.builder_name',
+            'order' => 'Builder.builder_name ASC'
+        ));
+        $this->set(compact('builders'));
+    }
+	
+	public function get_contactbuilder_by_builderid(){
+	$this->layout = 'ajax';
+	   
+	    $builder_id = $this->data['ProjectContact']['project_contact_builder_id'];
+       
+        $builder_contacts = $this->BuilderContact->find('list', array(
+	    
+	    'conditions' => array(
+						'BuilderContact.builder_contact_builder_id' => $builder_id ),
+        'fields' => 'BuilderContact.id, BuilderContact.builder_contact_name',
+        'order' => 'BuilderContact.builder_contact_name ASC'
+        ));
+        $this->set(compact('builder_contacts'));
+    }
+	
+	public function get_secobuilder_by_cityid(){
+	$this->layout = 'ajax';
+	   
+	    $city_id = $this->data['Project']['city_id'];
+       
+        $builders = $this->Builder->find('list', array(
+	    
+	    'conditions' => array('OR' =>array(
+                'Builder.builder_primarycity' => $city_id,
+		'Builder.builder_secondarycity' => $city_id,
+		'Builder.builder_tertiarycity' => $city_id,
+		'Builder.city_4' => $city_id,
+		'Builder.city_5' => $city_id,
+		),
+		'Builder.builder_approved' => '1'
+		
+		
+            ),
+            'fields' => 'Builder.id, Builder.builder_name',
+            'order' => 'Builder.builder_name ASC'
+        ));
+        $this->set(compact('builders'));
+    }
+	
+	public function get_tertibuilder_by_cityid(){
+	$this->layout = 'ajax';
+	   
+	    $city_id = $this->data['Project']['city_id'];
+       
+        $builders = $this->Builder->find('list', array(
+	    
+	    'conditions' => array('OR' =>array(
+                'Builder.builder_primarycity' => $city_id,
+		'Builder.builder_secondarycity' => $city_id,
+		'Builder.builder_tertiarycity' => $city_id,
+		'Builder.city_4' => $city_id,
+		'Builder.city_5' => $city_id,
+		),
+		'Builder.builder_approved' => '1'
+		
+		
+            ),
+            'fields' => 'Builder.id, Builder.builder_name',
+            'order' => 'Builder.builder_name ASC'
+        ));
+        $this->set(compact('builders'));
+    }
+    
+     public function get_type_2_by_type1_id(){
+	 
+		$this->layout = '';
+		$type_id = $this->data['type_id'];
+		$model = $this->data['model'];
+      
+        $reimbursement_type2 = $this->LookupValueReimbursementType_2->find('list', array(
+	    
+	    'conditions' => array(
+                'type_id' => $type_id,
+		
+		
+            ),
+            'fields' => 'id, value',
+            'order' => 'value ASC'
+        ));
+	//pr($reimbursement_type2);
+	
+        $this->set(compact('reimbursement_type2'));
+	$this->set(compact('model'));
+    }
+	
+	public function get_activity_with_by_activity_level(){
+	 
+		$this->layout = '';
+		$level_id = $this->data['level_id'];
+		$model = $this->data['model'];
+		$self_id = $this->Auth->user("id");
+		$channels = $this->Channel->findById($channel_id);
+		$channel_role = $channels['Channel']['channel_role'];
+	    $city_id = $channels['Channel']['city_id'];
+		
+		if($level_id == '3')
+			$array_with = $this->Project->find('list', array('fields' => array('id', 'project_name'),'conditions' => array('city_id' => $city_id),'order' => 'project_name ASC'));
+		
+		else if($level_id == '2')
+		
+			$array_with = $this->Builder->find('list', array('fields' => 'Builder.id, Builder.builder_name','conditions' => array('OR' => array('builder_primarycity' => $city_id,'builder_secondarycity' => $city_id, 'builder_tertiarycity' => $city_id,'city_4' => $city_id, 'city_5' => $city_id)), 'order' => 'Builder.builder_name ASC'));
+		
+		else if($level_id == '4')
+			if($city_id <> 1)
+				$array_with = $this->City->find('list',array('fields' => 'id,city_name','conditions' => array('id' => $city_id),'order' => 'city_name ASC'));
+			else
+				$array_with = $this->City->find('list',array('fields' => 'id,city_name','conditions' => array('NOT' => array('id' =>$city_id)),'order' => 'city_name ASC'));
+		
+	
+		else if($level_id == '5')
+			$array_with = $this->Suburb->find('list', array('fields' => array('id', 'suburb_name'),'conditions' => array('city_id' => $city_id),'order' => 'suburb_name ASC'));
+			
+	  else if($level_id == '6')
+	    	$array_with = $this->Area->find('list', array('fields' => array('id', 'area_name'),'conditions' => array('city_id' => $city_id),'order' => 'area_name ASC'));
+		
+	 else if($level_id == '1'){
+		$clients = $this->Lead->find('all',array('fields' => array('Lead.id','Lead.lead_fname','Lead.lead_lname'),'conditions' =>  array('OR' => array('Lead.lead_managerprimary' => $self_id,'Lead.lead_managersecondary' => $self_id),'Lead.lead_fname !=""','Lead.lead_status' => array('4','7','8')),'order' => 'Lead.lead_fname ASC'));   
+		$array_with = Set::combine($clients, '{n}.Lead.id',array('%s %s','{n}.Lead.lead_fname','{n}.Lead.lead_lname'));
+		
+		}
+	else if($level_id == '7')	
+		$array_with = $this->LookupCompany->find('list',array('fields' => 'id,value','order' => 'value ASC'));
+        
+
+	
+     $this->set(compact('array_with'));
+	$this->set(compact('model'));
+    }
+	
+public function get_channel_by_city_id(){
+	$this->layout = '';
+	$city_id = $this->data['User']['city_id'];
+      
+        $channels = $this->Channel->find('list', array(
+	    
+	    'conditions' => array(
+                'city_id' => $city_id,
+		
+		
+            ),
+            'fields' => 'id, channel_name',
+            'order' => 'channel_name ASC'
+        ));
+	//pr($reimbursement_type2);
+	
+        $this->set(compact('channels'));
+	
+    }
+	
+	 public function get_phoneofficer_by_city_id() {
+       	$this->layout = 'ajax';
+        $city_id = $this->data['Lead']['city_id'];
+		$dummy_status = $this->Auth->user('dummy_status');
+        $phone_officer = $this->Channel->find('first', array(
+            'conditions' => array(
+                'Channel.city_id' => $city_id,
+		'Channel.channel_role' => 5,     // 5 for phone office of lookup_value_channel_roles
+		'Channel.dummy_status' => $dummy_status
+		
+            ),
+            'fields' => 'Channel.channel_name',
+            'order' => 'Channel.channel_name ASC'
+        ));
+		
+        $this->set(compact('phone_officer'));
+    }
+	
+	 public function get_project_by_level() {
+       	$this->layout = 'ajax';
+        $level_id = $this->data['level_id'];
+		 $builder_id = $this->data['builder_id'];
+		$dummy_status = $this->Auth->user('dummy_status');
+		if($level_id == '2')
+			 $contact_city = $this->data['contact_city'];
+			 
+			 
+		$projects = array();
+		if($level_id == '1')
+		{
+		
+		$projects = $this->Project->find('list',array('fields' => array('Project.id','Project.project_name'),'conditions' => array('Project.builder_id' => $builder_id)));
+	//	$global_project = Set::combine($projects, '{n}.Project.id',array('%s, %s, %s','{n}.Project.project_name','{n}.City.city_name','{n}.Area.area_name'));
+
+		}
+		elseif($level_id == '2')
+		{
+		
+		$projects = $this->Project->find('list',array('fields' => array('Project.id','Project.project_name'),'conditions' => 
+		array('Project.city_id' => $contact_city,'OR' => array('Project.builder_id' => $builder_id,'Project.tertiary_builder_id' => $builder_id,'Project.builder_agreement_id' => $builder_id))));
+		//$global_project = Set::combine($projects, '{n}.Project.id',array('%s, %s, %s','{n}.Project.project_name','{n}.City.city_name','{n}.Area.area_name'));
+
+		}
+		elseif($level_id == '3' || $level_id == '4' || $level_id == '5')
+		{
+			$projects = $this->Project->find('list',array('fields' => array('Project.id','Project.project_name'),'conditions' => 
+		array('OR' => array('Project.builder_id' => $builder_id,'Project.tertiary_builder_id' => $builder_id,'Project.builder_agreement_id' => $builder_id))));
+	//	$global_project = Set::combine($projects, '{n}.Project.id',array('%s, %s, %s','{n}.Project.project_name','{n}.City.city_name','{n}.Area.area_name'));	
+		}
+		
+
+		
+		$this->set('projects',$projects);
+
+       
+    }
+	
+	public function get_associate_by_cityid() {
+       	$this->layout = 'ajax';
+        $city_id = $this->data['Lead']['city_id'];
+		$dummy_status = $this->Auth->user('dummy_status');
+		
+$associate = $this->User->find('all',array('fields' => array('User.id','User.fname','User.lname'),
+                                                         'conditions' => array('User.distributor_role_id' => 5,'User.dummy_status' => $dummy_status,'User.city_id' => $city_id)));
+
+		$associate = Set::combine($associate, '{n}.User.id',array('%s %s','{n}.User.fname','{n}.User.lname'));
+				
+        $this->set(compact('associate'));
+    }
+	
+	public function getAllEventRecords()
+	{
+		$this->layout = 'ajax';
+		
+		$user_id = $this->Auth->user("id");
+		
+			$allRecords	= $this->Event->find('all',array('conditions' => array('Event.user_id' => $user_id,'OR' => array('Event.event_type' => array('1','4')))));
+				
+		
+                $jsonArray		= array();
+                $data			= array();
+	//	$data['admin_id']	= $this->session->userdata('admin_id');
+	//	$data['accessibility']	= 0;
+		
+                foreach($allRecords as $value)
+                {
+		
+			$data['id']             	= $value['Event']['id'];
+			$data['name']           	= stripslashes($value['Event']['description']);
+			$data['event_date']   		= $value['Event']['end_date'];
+			$data['start_date']   		= $value['Event']['start_date'];
+			
+			
+			//$toltip				= $this->load->view('calendar/edit_delete_icon',$data,TRUE);
+			$currentDate			= date('Y-m-d');
+			$editable			= FALSE;
+		    
+			if(strtotime($currentDate)>strtotime($data['event_date']))
+			{
+				$editable=TRUE;
+				$toltip='';
+			}
+			
+			
+			$background_color = '#0892CD';
+			
+			
+			$buildjson = array(
+					   'id' 		=> $data['id'],
+					   'title'		=> $data['name'],
+					   'start' 		=> $data['start_date'],
+					   'end'		=> $data['event_date'],
+					   'backgroundColor'	=> $background_color,
+					   'textColor'		=> '#FFF',
+					   'borderColor'	=> '#000',
+					   'editable'		=> $editable,
+					   //'tooltip'		=> $toltip,
+					   'className'		=> 'bookedEvnt'
+					   );
+			
+			array_push($jsonArray, $buildjson);
+                }
+		
+                echo json_encode($jsonArray);
+                die();
+	}
+	
+	public function countDetailRecord()
+	{
+		$this->layout = 'ajax';
+		
+		$record_id	= $this->data['recordId'];
+		$details = $this->Event->find('count',array('conditions' => array('Event.id' => $record_id,'Event.active' => 1 )));
+       echo $details;
+                exit;
+	}
+	public function get_list_initiated_by_city() {
+       	$this->layout = 'ajax';
+        $city_id = $this->data['Builder']['builder_primarycity'];
+		$dummy_status = $this->Auth->user('dummy_status');
+        $initiated_by = $this->User->find('all', array(
+            'conditions' => array(
+                'User.city_id' => $city_id,
+				'User.dummy_status' => $dummy_status,
+				'OR' => array('User.business_role_id' => array('11','12'),
+							   'User.exu_role_id' => array('7','8'),
+							   'User.finance_role_id' => array('15','16'),
+							   'User.legal_role_id'	=> array('21','22')
+								),
+		
+		
+		
+            ),
+            'fields' => array('User.id','User.fname','User.mname','User.lname'),
+            'order' => 'User.fname ASC'
+        ));
+		$initiated_by = Set::combine($initiated_by, '{n}.User.id',array('%s %s %s','{n}.User.fname','{n}.User.mname','{n}.User.lname'));
+		
+        $this->set(compact('initiated_by'));
+    }
+	public function get_list_managed_by_city() {
+       	$this->layout = 'ajax';
+        $city_id = $this->data['Builder']['builder_primarycity'];
+		$dummy_status = $this->Auth->user('dummy_status');
+        $managed_by = $this->User->find('all', array(
+            'conditions' => array(
+                'User.city_id' => $city_id,
+				'User.dummy_status' => $dummy_status,
+				'OR' => array('User.business_role_id' => array('11','12'),
+							   'User.exu_role_id' => array('7','8'),
+							   'User.finance_role_id' => array('15','16'),
+							   'User.legal_role_id'	=> array('21','22')
+								),
+		
+		
+		
+            ),
+            'fields' => array('User.id','User.fname','User.mname','User.lname'),
+            'order' => 'User.fname ASC'
+        ));
+		$managed_by = Set::combine($managed_by, '{n}.User.id',array('%s %s %s','{n}.User.fname','{n}.User.mname','{n}.User.lname'));
+		
+        $this->set(compact('managed_by'));
+    }
+	
+	public function get_builder_contact_details()
+	{
+		$this->layout = 'ajax';
+		$contact_id	= $this->data['contact_id'];
+		
+		$contact_details = $this->BuilderContact->find('all',array('conditions' => array('BuilderContact.id' => $contact_id)));
+      	$this->set(compact('contact_details'));
+	}
+	
+	public function get_list_projectmanaged_by_city() {
+       	$this->layout = 'ajax';
+        $city_id = $this->data['Project']['city_id'];
+		$dummy_status = $this->Auth->user('dummy_status');
+        $managed_by = $this->User->find('all', array(
+            'conditions' => array(
+                'User.city_id' => $city_id,
+				'User.dummy_status' => $dummy_status,
+				'OR' => array('User.business_role_id' => array('11','12'),
+							   'User.exu_role_id' => array('7','8'),
+							   'User.finance_role_id' => array('15','16'),
+							   'User.legal_role_id'	=> array('21','22')
+								),
+		
+		
+		
+            ),
+            'fields' => array('User.id','User.fname','User.mname','User.lname'),
+            'order' => 'User.fname ASC'
+        ));
+		$managed_by = Set::combine($managed_by, '{n}.User.id',array('%s %s %s','{n}.User.fname','{n}.User.mname','{n}.User.lname'));
+		
+        $this->set(compact('managed_by'));
+    }
+	
+	public function get_list_by_country_code(){
+	$this->layout = 'ajax';
+        $country_id = $this->data['Lead']['lead_country'];
+
+        $codes = $this->LookupValueLeadsCountry->find('list', array(
+            'conditions' => array(
+                'LookupValueLeadsCountry.id' => $country_id
+            ),
+            'fields' => 'LookupValueLeadsCountry.id, LookupValueLeadsCountry.code',
+            'order' => 'LookupValueLeadsCountry.code ASC'
+        ));
+	 /// $log = $this->LookupValueLeadsCountry->getDataSource()->getLog(false, false);       
+//debug($log);
+	 
+        $this->set('codes',$codes);
+	
+       }
+	   
+	 public function get_activity_desc_by_typeId($model = null){
+		
+		$this->layout = 'ajax';
+        $type_id = $this->data['type_id'];
+		$type_arr = array('type_id' => array($type_id,'0'));
+        $types = $this->LookupValueActivityDetail->find('list', array(
+																	'conditions' => $type_arr,
+																	'fields' => 'id, value',
+																	'order' => 'value ASC'
+																));
+	 
+        $this->set(compact('types'));
+	
+       }
+	 public function get_client_phone_email(){
+	 
+		$this->layout = 'ajax';
+		$lead_id = $this->data['lead_id'];
+
+      
+        $clients = $this->Lead->find('first', array('conditions' => array('Lead.id' => $lead_id),
+            										'fields' => 'Lead.lead_primaryphonenumber, Lead.lead_emailid',
+           
+        		));
+		$this->set(compact('clients'));
+	
+     
+    }   
+
+}

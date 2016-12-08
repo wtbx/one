@@ -1,0 +1,12 @@
+id,name,city_id,city_name,country_id,country_name,continent_id,continent_name,description,active,top_neighborhood,status,wtb_status,is_update,province_id,province_name,approved_by,approved_date,created_by,created
+NULL,Hong Kong Central and Western,6831,Hong Kong,100,Hong Kong,2,Asia,Hong Kong Central and Western,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Hong Kong Eastern,6831,Hong Kong,100,Hong Kong,2,Asia,Hong Kong Eastern,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Hong Kong Southern,6831,Hong Kong,100,Hong Kong,2,Asia,Hong Kong Southern,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Hong Kong Wan Chai,6831,Hong Kong,100,Hong Kong,2,Asia,Hong Kong Wan Chai,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Kowloon Sham Shui Po,8030,Kowloon,100,Hong Kong,2,Asia,Kowloon Sham Shui Po,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Kowloon City,8030,Kowloon,100,Hong Kong,2,Asia,Kowloon City,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Kowloon Kwun Tong,8030,Kowloon,100,Hong Kong,2,Asia,Kowloon Kwun Tong,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Kowloon Wong Tai Sin,8030,Kowloon,100,Hong Kong,2,Asia,Kowloon Wong Tai Sin,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Kowloon Yau Tsim Mong,8030,Kowloon,100,Hong Kong,2,Asia,Kowloon Yau Tsim Mong,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Lantau Island,38362,Lantau Island,100,Hong Kong,2,Asia,Lantau Island,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Tsuen Wan,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00

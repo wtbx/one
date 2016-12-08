@@ -1,0 +1,7 @@
+id,area_name,suburb_id,suburb_name,city_id,city_name,country_id,country_name,continent_id,continent_name,area_description,area_active,top_area,area_status,wtb_status,is_update,province_id,province_name,approved_by,approved_date,created_by,created
+NULL,Tsuen Wan,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Tsuen Wan,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Cheung Sok,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Cheung Sok,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Ma Wan,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Ma Wan,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Ngam Hau Shek,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Ngam Hau Shek,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Pun Shan Shek,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Pun Shan Shek,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00
+NULL,Tang Lung Chau,751,Tsuen Wan,16447,Tsuen Wan,100,Hong Kong,2,Asia,Tang Lung Chau,TRUE,FALSE,1,1,Y,841,Hong Kong,0,0000-00-00 00:00:00,169,0000-00-00 00:00:00

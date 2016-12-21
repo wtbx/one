@@ -57,7 +57,7 @@
 
 // 10 pm = 11:30; 12:15 pm = 13:45
 // 10 am = 23:30
- ECHO $curTime;
+// ECHO $curTime;
 if($curTime >= '8:00' && $curTime<= '12:30')
     Router::connect('/', array('controller' => 'users', 'action' => 'demo')); 
 else    
